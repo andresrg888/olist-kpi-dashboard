@@ -2,6 +2,12 @@
 
 Interactive KPI dashboard to explore Olist e-commerce sales performance.
 
+## Live Demo
+
+You can view the deployed dashboard here:
+
+👉 https://ug3qmsefqvzbl2tvpvvczr.streamlit.app/
+
 ## What you can answer with this dashboard
 - How is GMV evolving over time?
 - How many orders are happening in a selected time window?
