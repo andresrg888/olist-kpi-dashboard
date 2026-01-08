@@ -34,3 +34,18 @@ This project separates data preparation from visualization:
 ### 1) Prepare data
 ```bash
 python src/prepare_dashboard_data.py
+```
+
+### 2) Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 3) Run the app
+```bash
+streamlit run app.py
+```
+
+## Notes
+- The processed dataset is included in the repo: `data/processed/dashboard_orders.csv`
+- If you regenerate the dataset, re-run the Streamlit app to see changes.
