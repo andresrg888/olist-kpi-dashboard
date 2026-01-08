@@ -1,0 +1,8 @@
+# data
+data/raw/
+data/processed/
+
+# OS / editor
+.DS_Store
+.ipynb_checkpoints/
+.vscode/
