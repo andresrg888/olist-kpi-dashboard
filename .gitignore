@@ -1,6 +1,11 @@
 # data
 data/raw/
-data/processed/
+
+# ignore all processed files
+data/processed/*
+# except the final dataset
+!data/processed/
+!data/processed/dashboard_orders.csv
 
 # OS / editor
 .DS_Store
