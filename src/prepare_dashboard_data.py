@@ -3,7 +3,7 @@ import pandas as pd
 
 
 # --- Paths (relative to this file) ---
-PROJECT_ROOT = Path(__file__).resolve().parents[2]  # project-02-olist-dashboard/
+PROJECT_ROOT = Path(__file__).resolve().parents[1]  # project-02-olist-dashboard/
 DATA_RAW_DIR = PROJECT_ROOT / "data" / "raw" / "olist"
 DATA_PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 

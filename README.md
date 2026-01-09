@@ -1,51 +1,73 @@
 # Olist KPI Dashboard (Streamlit)
 
-Interactive KPI dashboard to explore Olist e-commerce sales performance.
+Interactive KPI dashboard to explore Olist e-commerce sales performance, focusing on revenue trends and category-level insights.
 
-## Live Demo
+## 🚀 Live Demo
 
 You can view the deployed dashboard here:
 
-👉 https://ug3qmsefqvzbl2tvpvvczr.streamlit.app/
+**[Olist Dashboard Live Demo](https://ug3qmsefqvzbl2tvpvvczr.streamlit.app/)**
 
-## What you can answer with this dashboard
-- How is GMV evolving over time?
-- How many orders are happening in a selected time window?
-- Is growth driven by more orders or higher AOV?
-- Which categories drive most GMV?
+---
 
-## KPIs
-- **GMV** (price + freight)
-- **Orders**
-- **AOV** (GMV / Orders)
+## 📊 Business Questions Answered
+This dashboard helps business stakeholders understand:
+- **Revenue Growth:** How is GMV (Gross Merchandise Value) evolving month-over-month?
+- **Order Volume:** How many delivered orders are being processed in specific timeframes?
+- **Operational Efficiency:** Is revenue growth driven by increased organic demand (Order Count) or higher ticket sizes (AOV)?
+- **Category Performance:** Which product categories are currently the primary drivers of revenue?
 
-## Filters
-- Date range (order purchase date)
-- Product category (dominant category per order)
+## 💡 Key Metrics (KPIs)
+- **GMV:** Total revenue (Price + Freight) from delivered orders.
+- **Orders:** Count of unique successfully delivered orders.
+- **AOV (Average Order Value):** GMV divided by the number of orders, indicating customer spending behavior.
 
-## Data pipeline
-This project separates data preparation from visualization:
-- `src/prepare_dashboard_data.py` builds a clean dataset at **order level**
-- Output is saved to `data/processed/dashboard_orders.csv`
-- `app.py` loads the processed dataset and renders the dashboard
+---
 
-## How to run locally
-
-### 1) Prepare data
-```bash
-python src/prepare_dashboard_data.py
+## 🛠 Project Structure
+```text
+.
+├── app.py                # Streamlit application (Frontend)
+├── src/
+│   └── prepare_dashboard_data.py  # Data processing pipeline
+├── data/
+│   ├── raw/              # Original dataset (Olist Kaggle)
+│   └── processed/
+│       └── dashboard_orders.csv   # Cleaned dataset for the dashboard
+├── notebooks/            # Exploratory research and drafting
+├── requirements.txt      # Python dependencies
+└── README.md
 ```
 
-### 2) Install dependencies
+---
+
+## ⚙️ How to Use This Dashboard
+
+### 1. Filters & Navigation
+- **Date Range:** Use the sidebar to select specific windows (e.g., peak seasons like Black Friday).
+- **Category Filter:** Filter by specific niches or compare all categories simultaneously.
+- **Dynamic Metrics:** KPIs automatically recalculate based on your active filters.
+
+### 2. Local Setup
+If you wish to run this project locally:
+
+**Step 1: Clone and install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3) Run the app
+**Step 2: (Optional) Refresh data pipeline**
+```bash
+python src/prepare_dashboard_data.py
+```
+
+**Step 3: Launch the app**
 ```bash
 streamlit run app.py
 ```
 
-## Notes
-- The processed dataset is included in the repo: `data/processed/dashboard_orders.csv`
-- If you regenerate the dataset, re-run the Streamlit app to see changes.
+---
+
+## 📋 Notes & Data Source
+- **Data Source:** [Olist E-Commerce Dataset (Kaggle)](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
+- **Status:** The processed dataset `data/processed/dashboard_orders.csv` is tracked in the repository to ensure immediate functionality upon deployment.
