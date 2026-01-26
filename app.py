@@ -6,9 +6,10 @@ import sys
 # Page configuration
 st.set_page_config(page_title="Olist KPI Dashboard", layout="wide")
 
-# Path handling - Robust relative path
-PROJECT_ROOT = Path(__file__).resolve().parent
-DATA_FILE = PROJECT_ROOT / "data" / "processed" / "dashboard_orders.csv"
+# Path handling - Simpler for Streamlit Cloud
+DATA_FILE = Path("data/processed/dashboard_orders.csv")
+
+st.write("🔄 Dashboard is initializing...")
 
 st.title("Olist KPI Dashboard")
 st.caption(
