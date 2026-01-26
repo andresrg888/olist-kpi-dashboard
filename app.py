@@ -193,6 +193,6 @@ st.write(
 # ----------------------------
 try:
     st.write(f"Showing **{df_filtered.shape[0]:,}** orders after filters.")
-    st.dataframe(df_filtered.head(100), use_container_width=True)
+    st.dataframe(df_filtered.head(100), width="stretch")
 except Exception as e:
     st.warning(f"Dataframe preview error: {e}")

@@ -6,7 +6,7 @@ Interactive KPI dashboard to explore Olist e-commerce sales performance, focusin
 
 You can view the deployed dashboard here:
 
-**[Olist Dashboard Live Demo](https://ug3qmsefqvzbl2tvpvvczr.streamlit.app/)**
+**[Olist Dashboard Live Demo](https://olist-kpi-dashboard-xgaf4r8t47axffxwx2zmxp.streamlit.app/)**
 
 ---
 
