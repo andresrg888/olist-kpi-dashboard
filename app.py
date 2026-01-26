@@ -23,11 +23,8 @@ def load_data(path: Path) -> pd.DataFrame:
             st.info("Check if the file is present in your GitHub repository folder: `data/processed/dashboard_orders.csv`")
             st.stop()
             
-        # Try reading with pyarrow for speed, fallback to default
-        try:
-            df = pd.read_csv(path, engine='pyarrow')
-        except Exception:
-            df = pd.read_csv(path)
+        # Use standard pandas engine for maximum compatibility on cloud environments
+        df = pd.read_csv(path)
 
         # Ensure correct types for filtering
         df["order_date"] = pd.to_datetime(df["order_date"]).dt.date
