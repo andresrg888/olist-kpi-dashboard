@@ -14,6 +14,10 @@ st.caption(
 
 @st.cache_data
 def load_data(path: Path) -> pd.DataFrame:
+    if not path.exists():
+        st.error(f"Data file not found at: {path}")
+        st.stop()
+        
     df = pd.read_csv(path)
 
     # Ensure correct types for filtering
@@ -110,11 +114,18 @@ st.subheader("What this view tells you")
 
 # Dynamic context
 selected_cat_count = len(selected_categories)
-st.write(
-    f"- **Date window:** {date_range[0]} → {date_range[1]}"
-    f"\n- **Categories selected:** {selected_cat_count}"
-    f"\n- **Orders in scope:** {total_orders:,}"
-)
+if isinstance(date_range, (tuple, list)) and len(date_range) == 2:
+    st.write(
+        f"- **Date window:** `{date_range[0]}` → `{date_range[1]}`"
+        f"\n- **Categories selected:** {selected_cat_count}"
+        f"\n- **Orders in scope:** {total_orders:,}"
+    )
+else:
+    st.write(
+        f"- **Date window:** (Select a range in the sidebar)"
+        f"\n- **Categories selected:** {selected_cat_count}"
+        f"\n- **Orders in scope:** {total_orders:,}"
+    )
 
 # Data-driven insights
 if total_orders > 0:
