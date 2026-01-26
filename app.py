@@ -1,9 +1,12 @@
 from pathlib import Path
 import pandas as pd
 import streamlit as st
+import sys
 
+# Page configuration
 st.set_page_config(page_title="Olist KPI Dashboard", layout="wide")
 
+# Path handling - Robust relative path
 PROJECT_ROOT = Path(__file__).resolve().parent
 DATA_FILE = PROJECT_ROOT / "data" / "processed" / "dashboard_orders.csv"
 
@@ -14,97 +17,126 @@ st.caption(
 
 @st.cache_data
 def load_data(path: Path) -> pd.DataFrame:
-    if not path.exists():
-        st.error(f"Data file not found at: {path}")
+    try:
+        if not path.exists():
+            st.error(f"### ❌ Data file not found\nExpected at: `{path}`")
+            st.info("Check if the file is present in your GitHub repository folder: `data/processed/dashboard_orders.csv`")
+            st.stop()
+            
+        # Try reading with pyarrow for speed, fallback to default
+        try:
+            df = pd.read_csv(path, engine='pyarrow')
+        except Exception:
+            df = pd.read_csv(path)
+
+        # Ensure correct types for filtering
+        df["order_date"] = pd.to_datetime(df["order_date"]).dt.date
+        df["order_gmv"] = pd.to_numeric(df["order_gmv"], errors="coerce").fillna(0.0)
+        df["order_items"] = pd.to_numeric(df["order_items"], errors="coerce").fillna(0).astype(int)
+        df["category"] = df["category"].fillna("unknown")
+
+        return df
+    except Exception as e:
+        st.error(f"### ❌ Error loading data\n`{str(e)}`")
+        st.exception(e)
         st.stop()
-        
-    df = pd.read_csv(path)
 
-    # Ensure correct types for filtering
-    df["order_date"] = pd.to_datetime(df["order_date"]).dt.date
-    df["order_gmv"] = pd.to_numeric(df["order_gmv"], errors="coerce").fillna(0.0)
-    df["order_items"] = pd.to_numeric(df["order_items"], errors="coerce").fillna(0).astype(int)
-    df["category"] = df["category"].fillna("unknown")
-
-    return df
-
-df = load_data(DATA_FILE)
+# Execution with error handling
+try:
+    df = load_data(DATA_FILE)
+except Exception as e:
+    st.error(f"### ❌ Unexpected error\n`{str(e)}`")
+    st.stop()
 
 # ----------------------------
 # Sidebar filters
 # ----------------------------
 st.sidebar.header("Filters")
 
-min_date = df["order_date"].min()
-max_date = df["order_date"].max()
+try:
+    min_date = df["order_date"].min()
+    max_date = df["order_date"].max()
 
-date_range = st.sidebar.date_input(
-    "Order date range",
-    value=(min_date, max_date),
-    min_value=min_date,
-    max_value=max_date
-)
-
-categories = sorted(df["category"].dropna().unique())
-selected_categories = st.sidebar.multiselect(
-    "Product category",
-    options=categories,
-    default=categories
-)
-
-# Apply filters
-if isinstance(date_range, tuple) and len(date_range) == 2:
-    start_date, end_date = date_range
-    mask = (
-        (df["order_date"] >= start_date) &
-        (df["order_date"] <= end_date) &
-        (df["category"].isin(selected_categories))
+    date_range = st.sidebar.date_input(
+        "Order date range",
+        value=(min_date, max_date),
+        min_value=min_date,
+        max_value=max_date
     )
-    df_filtered = df.loc[mask].copy()
-else:
-    # If range incomplete, filter only by category
-    df_filtered = df[df["category"].isin(selected_categories)].copy()
+
+    categories = sorted(df["category"].dropna().unique())
+    selected_categories = st.sidebar.multiselect(
+        "Product category",
+        options=categories,
+        default=categories
+    )
+
+    # Apply filters safely
+    if isinstance(date_range, (tuple, list)) and len(date_range) == 2:
+        start_date, end_date = date_range
+        mask = (
+            (df["order_date"] >= start_date) &
+            (df["order_date"] <= end_date) &
+            (df["category"].isin(selected_categories))
+        )
+        df_filtered = df.loc[mask].copy()
+    else:
+        # If range incomplete, filter only by category
+        df_filtered = df[df["category"].isin(selected_categories)].copy()
+
+except Exception as e:
+    st.sidebar.error(f"Error in filters: {e}")
+    df_filtered = df.copy()
 
 # ----------------------------
 # KPIs
 # ----------------------------
-total_gmv = df_filtered["order_gmv"].sum()
-total_orders = df_filtered["order_id"].nunique()
-aov = total_gmv / total_orders if total_orders > 0 else 0
+try:
+    total_gmv = df_filtered["order_gmv"].sum()
+    total_orders = df_filtered["order_id"].nunique()
+    aov = total_gmv / total_orders if total_orders > 0 else 0
 
-col1, col2, col3 = st.columns(3)
-col1.metric("Total GMV", f"${total_gmv:,.0f}")
-col2.metric("Total Orders", f"{total_orders:,}")
-col3.metric("AOV", f"${aov:,.2f}")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total GMV", f"${total_gmv:,.0f}")
+    col2.metric("Total Orders", f"{total_orders:,}")
+    col3.metric("AOV", f"${aov:,.2f}")
+except Exception as e:
+    st.warning(f"Metrics error: {e}")
 
 st.markdown("---")
 
 # ----------------------------
 # Chart 1 — Monthly GMV trend
 # ----------------------------
-monthly = (
-    df_filtered.groupby("order_month", as_index=False)
-    .agg(gmv=("order_gmv", "sum"), orders=("order_id", "nunique"))
-    .sort_values("order_month")
-)
+try:
+    monthly = (
+        df_filtered.groupby("order_month", as_index=False)
+        .agg(gmv=("order_gmv", "sum"), orders=("order_id", "nunique"))
+        .sort_values("order_month")
+    )
 
-st.subheader("Monthly GMV Trend")
-st.line_chart(monthly.set_index("order_month")[["gmv"]])
+    st.subheader("Monthly GMV Trend")
+    st.line_chart(monthly.set_index("order_month")[["gmv"]])
+except Exception as e:
+    st.error(f"Chart error: {e}")
 
 # ----------------------------
 # Chart 2 — Top categories by GMV
 # ----------------------------
-top_n = st.selectbox("Top N categories", [5, 10, 15, 20], index=1)
+try:
+    top_n = st.selectbox("Top N categories", [5, 10, 15, 20], index=1)
 
-cat_perf = (
-    df_filtered.groupby("category", as_index=False)
-    .agg(gmv=("order_gmv", "sum"), orders=("order_id", "nunique"))
-    .sort_values("gmv", ascending=False)
-    .head(top_n)
-)
+    cat_perf = (
+        df_filtered.groupby("category", as_index=False)
+        .agg(gmv=("order_gmv", "sum"), orders=("order_id", "nunique"))
+        .sort_values("gmv", ascending=False)
+        .head(top_n)
+    )
 
-st.subheader("Top Categories by GMV")
-st.bar_chart(cat_perf.set_index("category")[["gmv"]])
+    st.subheader("Top Categories by GMV")
+    st.bar_chart(cat_perf.set_index("category")[["gmv"]])
+except Exception as e:
+    st.error(f"Categories error: {e}")
 
 # ----------------------------
 # Storytelling / Insights
@@ -112,7 +144,7 @@ st.bar_chart(cat_perf.set_index("category")[["gmv"]])
 st.markdown("---")
 st.subheader("What this view tells you")
 
-# Dynamic context
+# Dynamic context check
 selected_cat_count = len(selected_categories)
 if isinstance(date_range, (tuple, list)) and len(date_range) == 2:
     st.write(
@@ -129,26 +161,29 @@ else:
 
 # Data-driven insights
 if total_orders > 0:
-    # Best month by GMV
-    best_month_row = monthly.sort_values("gmv", ascending=False).head(1)
-    best_month = best_month_row["order_month"].iloc[0]
-    best_month_gmv = best_month_row["gmv"].iloc[0]
+    try:
+        # Best month by GMV
+        best_month_row = monthly.sort_values("gmv", ascending=False).head(1)
+        best_month = best_month_row["order_month"].iloc[0]
+        best_month_gmv = best_month_row["gmv"].iloc[0]
 
-    # Top category by GMV
-    top_cat = cat_perf.sort_values("gmv", ascending=False).head(1)
-    top_cat_name = top_cat["category"].iloc[0]
-    top_cat_gmv = top_cat["gmv"].iloc[0]
+        # Top category by GMV
+        top_cat = cat_perf.sort_values("gmv", ascending=False).head(1)
+        top_cat_name = top_cat["category"].iloc[0]
+        top_cat_gmv = top_cat["gmv"].iloc[0]
 
-    st.write("### Key takeaways (data-backed)")
-    st.write(
-        f"1) **Peak month (GMV):** `{best_month}` with **${best_month_gmv:,.0f}** GMV."
-    )
-    st.write(
-        f"2) **Top category (GMV):** `{top_cat_name}` with **${top_cat_gmv:,.0f}** GMV in the current filter."
-    )
-    st.write(
-        "3) **AOV signal:** Use AOV to check whether growth comes from **more orders** or **higher basket size**."
-    )
+        st.write("### Key takeaways (data-backed)")
+        st.write(
+            f"1) **Peak month (GMV):** `{best_month}` with **${best_month_gmv:,.0f}** GMV."
+        )
+        st.write(
+            f"2) **Top category (GMV):** `{top_cat_name}` with **${top_cat_gmv:,.0f}** GMV in the current filter."
+        )
+        st.write(
+            "3) **AOV signal:** Use AOV to check whether growth comes from **more orders** or **higher basket size**."
+        )
+    except Exception:
+        st.write("*(Insights unavailable for this selection)*")
 
 st.markdown("### How to use this dashboard")
 st.write(
@@ -161,5 +196,8 @@ st.write(
 # ----------------------------
 # Data preview
 # ----------------------------
-st.write(f"Showing **{df_filtered.shape[0]:,}** orders after filters.")
-st.dataframe(df_filtered.head(100), use_container_width=True)
+try:
+    st.write(f"Showing **{df_filtered.shape[0]:,}** orders after filters.")
+    st.dataframe(df_filtered.head(100), use_container_width=True)
+except Exception as e:
+    st.warning(f"Dataframe preview error: {e}")
