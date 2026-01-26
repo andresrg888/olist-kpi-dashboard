@@ -4,7 +4,8 @@ import streamlit as st
 import sys
 
 # Page configuration
-st.set_page_config(page_title="Olist KPI Dashboard", layout="wide", page_icon="📊")
+# Page configuration
+st.set_page_config(page_title="Olist Dashboard", layout="wide")
 
 # Path handling - Simplest for Streamlit Cloud
 DATA_FILE = Path("data/processed/dashboard_orders.csv")
