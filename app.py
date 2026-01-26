@@ -4,17 +4,13 @@ import streamlit as st
 import sys
 
 # Page configuration
-st.set_page_config(page_title="Olist KPI Dashboard", layout="wide")
+st.set_page_config(page_title="Olist KPI Dashboard", layout="wide", page_icon="📊")
 
-# Path handling - Simpler for Streamlit Cloud
+# Path handling - Simplest for Streamlit Cloud
 DATA_FILE = Path("data/processed/dashboard_orders.csv")
 
-st.write("🔄 Dashboard is initializing...")
-
 st.title("Olist KPI Dashboard")
-st.caption(
-    "Interactive KPIs for sales performance (GMV, Orders, AOV) with time and category filters."
-)
+st.markdown("---")
 
 @st.cache_data
 def load_data(path: Path) -> pd.DataFrame:
